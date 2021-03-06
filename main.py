@@ -14,19 +14,72 @@ def game_result(result, word):
 
 # Function created to ask the user whether they want to play again or not
 def play_again():
-    print("Do you want to play Again? Y or N")
-    res = input()
+    res = input("Game over. Do you want to play Again? Y or N: ")
+    while res != 'Y' and res != 'N':
+        res = input("Please enter either Y or N: ")
     if res == 'Y':
         start_game()
 
 
+def fill_structures(word, word_array, letter_dictionary):
+    # For loop used to iterate through indices of word
+    for x in range(len(word)):
+        # if the character at index x is a letter, append an underline to serve as a letter guessing slot
+        if word[x].isalpha():
+            word_array.append("_")
+            # if a key is found, the list value is appended with the next index
+            if letter_dictionary.get(word[x]) is not None:
+                letter_dictionary[word[x]].append(x)
+            # if a key is not found, a key(letter)/value(indices) pair is stored
+            else:
+                letter_dictionary[word[x]] = [x]
+        else:
+            # if the character at index x is not a letter, a dash is appended to represent a space or hyphen
+            word_array.append("-")
+
+
+# Function created to draw a snowman part by part as the user continues to guess wrong
+def draw_snowman(lives):
+    if lives <= 4:
+        print("""                            ██████████████████                      
+                            ██████████████████                      
+                            ██████████████████                      
+                            ██████████████████                      
+                            ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒                      
+                        ██████████████████████████""")
+    if lives <= 3:
+        print("""                          ██                  ██                    
+                        ██      ██      ██      ██                  
+                        ██                      ██                  
+    ████                ██        ▒▒▒▒          ██                  
+  ██░░▒▒▒▒              ██    ░░░░░░░░          ██                  
+██▒▒████  ██            ██      ██      ██      ██                  
+██  ████▒▒██              ██      ██████      ██                    
+  ██  ██  ██              ██                  ████ """)
+    if lives <= 2:
+        print("""      ██▒▒██            ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒██                
+      ██  ██            ██▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒██        ▓▓    """)
+    if lives <= 1:
+        print("""      ██▒▒██            ██                      ██▒▒▒▒▒▒██  ██▓▓████
+    ██▓▓  ▓▓██        ██                          ██▒▒▒▒▒▒▓▓██▓▓▓▓▓▓
+      ██▒▒██▓▓██      ██                          ██▒▒▒▒▒▒██▓▓██████
+      ██  ████▓▓▓▓▓▓▓▓              ██              ██▒▒▒▒▓▓██      
+      ██▒▒██  ██▓▓▓▓██                              ██▓▓▓▓██        
+      ██  ██    ██████                              ██████          """)
+    if lives <= 0:
+        print("""      ██▒▒██        ██              ██              ██            
+      ██  ██        ██                              ██              
+                    ██                              ██              
+                    ██              ██              ██              
+                      ██                          ██                
+                        ██                      ██                  
+                          ██████████████████████                  """)
+
+
 # Function created to start the game of Snowman
 def start_game():
-    # Random word is retrieved from API under certain conditions
-    word = str(r.get_random_word(hasDictionaryDef="true", includePartOfSpeech="noun,verb"))
-
-    # Built in function is used to set all characters to lowercase
-    word = word.lower()
+    # Random word is retrieved from API under certain conditions. The string lower function is then called
+    word = str(r.get_random_word(hasDictionaryDef="true", includePartOfSpeech="noun,verb")).lower()
 
     # Character array is declared to contain missing/found letters
     word_array = []
@@ -43,42 +96,32 @@ def start_game():
     # Initialized integer variable to check how many attempts the user has left at guessing letters
     lives = 5
 
-    # For loop used to iterate through indices of word
-    for x in range(len(word)):
-        # if the character at index x is a letter, append an underline to serve as a letter guessing slot
-        if word[x].isalpha():
-            word_array.append("_")
-            # if a key is found, the list value is appended with the next index
-            if letter_dictionary.get(word[x]) is not None:
-                letter_dictionary[word[x]].append(x)
-            # if a key is not found, a key(letter)/value(indices) pair is stored
-            else:
-                letter_dictionary[word[x]] = [x]
-        else:
-            # if the character at index x is not a letter, a dash is appended to represent a space or hyphen
-            word_array.append("-")
+    fill_structures(word, word_array, letter_dictionary)
 
     print(word)
 
     # while loop used to continue game until player is out of lives or the player wins the game
     while lives >= 0 and game_won is False:
         print(str(lives) + " lives left!")
+        draw_snowman(lives)
         for x in word_array:
             print(x, end=" ")
-        letter_picked = input("Choose a letter: ")
-        if letter_dictionary.get(letter_picked) is not None:
-            if letters_used.get(letter_picked) is None:
-                letters_used[letter_picked] = 1
-                for j in letter_dictionary[letter_picked]:
-                    word_array[j] = letter_picked
-                    # if statement used to verify whether the current progress matches the complete word
-                    if "".join(word_array) == word:
-                        game_won = True
-            else:
-                print("You have already used character " + letter_picked + ". Pick a different one.")
+        letter_picked = input("\nChoose a letter: ")
+        # while loop used to check that the letter input meets all conditions
+        while letter_picked.isalpha() is False or len(letter_picked) is not 1 or letter_picked.isupper():
+            letter_picked = input("Please enter a lowercase letter: ")
+        if letter_dictionary.get(letter_picked) is not None and letters_used.get(letter_picked) is None:
+            letters_used[letter_picked] = 1
+            for j in letter_dictionary[letter_picked]:
+                word_array[j] = letter_picked
+                # if statement used to verify whether the current progress matches the complete word
+            if "".join(word_array) == word:
+                game_won = True
+        elif letters_used.get(letter_picked) is not None:
+            print("You have already used this character " + letter_picked + ". Pick a different one.")
         else:
             lives -= 1
-        print("\n")
+            print("\n")
 
     game_result(game_won, word)
     play_again()
