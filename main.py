@@ -74,6 +74,7 @@ def draw_snowman(lives):
                       ██                          ██                
                         ██                      ██                  
                           ██████████████████████                  """)
+    print("\n")
 
 
 # Function created to start the game of Snowman
@@ -99,30 +100,36 @@ def start_game():
     fill_structures(word, word_array, letter_dictionary)
 
     print(word)
-
+    print("Snowman: Game Underway")
     # while loop used to continue game until player is out of lives or the player wins the game
     while lives >= 0 and game_won is False:
-        print(str(lives) + " lives left!")
-        draw_snowman(lives)
+        if lives == 1:
+            print("You have 1 extra life left")
+        elif lives == 0:
+            print("You are out of extra lives")
+        else:
+            print("You have " + str(lives) + " extra lives left!")
+
         for x in word_array:
             print(x, end=" ")
         letter_picked = input("\nChoose a letter: ")
         # while loop used to check that the letter input meets all conditions
         while letter_picked.isalpha() is False or len(letter_picked) is not 1 or letter_picked.isupper():
             letter_picked = input("Please enter a lowercase letter: ")
-        if letter_dictionary.get(letter_picked) is not None and letters_used.get(letter_picked) is None:
+        if letters_used.get(letter_picked) is None:
             letters_used[letter_picked] = 1
-            for j in letter_dictionary[letter_picked]:
-                word_array[j] = letter_picked
-                # if statement used to verify whether the current progress matches the complete word
-            if "".join(word_array) == word:
-                game_won = True
+            if letter_dictionary.get(letter_picked) is not None:
+                for j in letter_dictionary[letter_picked]:
+                    word_array[j] = letter_picked
+                    # if statement used to verify whether the current progress matches the complete word
+                if "".join(word_array) == word:
+                    game_won = True
+            else:
+                lives -= 1
+                print("\n")
         elif letters_used.get(letter_picked) is not None:
-            print("You have already used this character " + letter_picked + ". Pick a different one.")
-        else:
-            lives -= 1
-            print("\n")
-
+            print("You have already used character " + letter_picked + ". Pick a different one.\n")
+        draw_snowman(lives)
     game_result(game_won, word)
     play_again()
 
